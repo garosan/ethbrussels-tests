@@ -41,10 +41,10 @@ module.exports = {
       },
       {
         dark: {
-          primary: "#212638",
+          primary: "#D7F7C9",
           "primary-content": "#F9FBFF",
-          secondary: "#323f61",
-          "secondary-content": "#F9FBFF",
+          secondary: "#2C9582",
+          "secondary-content": "#132F3D",
           accent: "#4969A6",
           "accent-content": "#F9FBFF",
           neutral: "#F9FBFF",
@@ -78,6 +78,12 @@ module.exports = {
     extend: {
       boxShadow: {
         center: "0 0 12px -2px rgb(0 0 0 / 0.05)",
+      },
+      colors: {
+        circleButtons: '#2C9582',
+        ctaButtons: '#D7F7C9',
+        customText: '#FFFDEC',
+        customButtonText: '#132F3D',
       },
       animation: {
         "pulse-fast": "pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite",
