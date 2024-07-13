@@ -42,5 +42,10 @@
   },
   "engines": {
     "node": ">=18.17.0"
+  },
+  "dependencies": {
+    "@web3auth/base": "^8.8.0",
+    "@web3auth/ethereum-provider": "^8.10.2",
+    "@web3auth/modal": "^8.10.2"
   }
 }

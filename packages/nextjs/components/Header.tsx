@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
+import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
+import { Web3Auth } from "@web3auth/modal";
 import { Bars3Icon, BugAntIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
@@ -13,6 +16,30 @@ type HeaderMenuLink = {
   href: string;
   icon?: React.ReactNode;
 };
+
+// IMP START - Dashboard Registration
+const clientId = "BNrUhj1UB5PbmJOSM_LXh6pOWrdTYfMrIB-N4gy8hNt1HDu-exzZLCRPjaeWv1qPtvXPd9rFDHWkiCkmTMKQkb8"; // get from https://dashboard.web3auth.io
+
+const chainConfig = {
+  chainId: "0x1", // Please use 0x1 for Mainnet
+  rpcTarget: "https://rpc.ankr.com/eth",
+  chainNamespace: CHAIN_NAMESPACES.EIP155,
+  displayName: "Ethereum Mainnet",
+  blockExplorerUrl: "https://etherscan.io/",
+  ticker: "ETH",
+  tickerName: "Ethereum",
+  logo: "https://images.toruswallet.io/eth.svg",
+};
+
+const privateKeyProvider = new EthereumPrivateKeyProvider({
+  config: { chainConfig: chainConfig },
+});
+
+const web3auth = new Web3Auth({
+  clientId,
+  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+  privateKeyProvider: privateKeyProvider,
+});
 
 export const menuLinks: HeaderMenuLink[] = [
   {
@@ -57,11 +84,44 @@ export const HeaderMenuLinks = () => {
  */
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [provider, setProvider] = useState<IProvider | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
   useOutsideClick(
     burgerMenuRef,
     useCallback(() => setIsDrawerOpen(false), []),
   );
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await web3auth.initModal();
+        setProvider(web3auth.provider);
+
+        if (web3auth.connected) {
+          setLoggedIn(true);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    init();
+  }, []);
+
+  const loginWeb3Auth = async () => {
+    const web3authProvider = await web3auth.connect();
+    setProvider(web3authProvider);
+    if (web3auth.connected) {
+      setLoggedIn(true);
+    }
+  };
+
+  const logout = async () => {
+    await web3auth.logout();
+    setProvider(null);
+    setLoggedIn(false);
+  };
 
   return (
     <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
@@ -76,6 +136,29 @@ export const Header = () => {
           >
             <Bars3Icon className="h-1/2" />
           </label>
+          {loggedIn && (
+            <>
+              <div className="flex-container">
+                <div>
+                  <button className="card">Get User Info</button>
+                </div>
+                <div>
+                  <button className="card">Get Accounts</button>
+                </div>
+                <div>
+                  <button className="card">Get Balance</button>
+                </div>
+                <div>
+                  <button className="card">Sign Message</button>
+                </div>
+                <div>
+                  <button onClick={logout} className="card">
+                    Log Out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
           {isDrawerOpen && (
             <ul
               tabIndex={0}
@@ -104,6 +187,9 @@ export const Header = () => {
       <div className="navbar-end flex-grow mr-4">
         <RainbowKitCustomConnectButton />
         <FaucetButton />
+        <button className="btn btn-primary btn-sm" onClick={loginWeb3Auth} type="button">
+          Test Web3Auth
+        </button>
       </div>
     </div>
   );
